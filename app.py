@@ -2,32 +2,30 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import cv2
 
-# Cargar el modelo previamente entrenado
+# Cargar modelo
 model = tf.keras.models.load_model("modelo_emociones.h5")
 
-# Clases (ajusta si usaste nombres distintos)
-class_names = ['Enojado', 'feliz', 'neutral', 'triste']
+# Etiquetas de las clases (modifica según tu dataset)
+class_names = ['feliz', 'neutral', 'triste']
 
-st.title("Clasificador de emociones faciales 😊😠😐😢")
+st.title("Clasificación de emociones faciales")
+st.write("Sube una imagen y el modelo predecirá la emoción.")
 
-uploaded_file = st.file_uploader("Sube una imagen", type=["jpg", "png", "jpeg"])
+# Cargar imagen
+uploaded_file = st.file_uploader("Elige una imagen...", type=["jpg", "png", "jpeg"])
 
 if uploaded_file is not None:
-    image = Image.open(uploaded_file)
-    st.image(image, caption="Imagen cargada", use_column_width=True)
+    image = Image.open(uploaded_file).convert("RGB")
+    st.image(image, caption='Imagen cargada.', use_column_width=True)
 
-    # Preprocesamiento: redimensionar e invertir canales para el modelo
-    img = image.resize((224, 224))  # asegúrate que este tamaño sea el correcto para tu modelo
-    img_array = np.array(img)
-    if img_array.shape[-1] == 4:
-        img_array = img_array[:, :, :3]  # Quitar canal alfa si existe
-    img_array = img_array / 255.0
+    # Preprocesamiento
+    img = image.resize((224, 224))  # Tamaño usado en el entrenamiento
+    img_array = np.array(img) / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     # Predicción
-    prediction = model.predict(img_array)
-    predicted_class = class_names[np.argmax(prediction)]
+    predictions = model.predict(img_array)
+    predicted_class = class_names[np.argmax(predictions)]
 
-    st.markdown(f"### Emoción detectada: **{predicted_class}**")
+    st.write(f"**Emoción detectada:** {predicted_class}")
